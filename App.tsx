@@ -33,7 +33,6 @@ declare global {
 }
 
 // --- Workflow Template Generator ---
-// We now generate this dynamically based on project type to ensure static sites don't try to run npm commands
 const getWorkflowYaml = (isNodeProject: boolean) => `name: Deploy to GitHub Pages
 
 on:
@@ -316,6 +315,14 @@ const SelectionStep = ({ user, onDeploy, initialRepoName }: SelectionStepProps) 
       }
   };
 
+  // Helper function to trigger high-CPM smart link
+  const triggerSmartLink = () => {
+    window.open(
+      'https://www.effectivegatecpm.com/genejfm2xp?key=8438651eb178c2abbd3ef7cbd93b243d', 
+      '_blank'
+    );
+  };
+
   const handleDeployClick = async () => {
     // Check for premium status
     if (window.onNativePremiumActive === false) {
@@ -324,6 +331,9 @@ const SelectionStep = ({ user, onDeploy, initialRepoName }: SelectionStepProps) 
         return;
       }
     }
+
+    // Trigger Ad Smart Link to ensure revenue generation on action
+    triggerSmartLink();
 
     const repoName = repoType === 'new' ? newRepoName : selectedRepo;
     if (!repoName) return;
@@ -671,9 +681,6 @@ const ManageStep = ({ user, onUpdate }: ManageStepProps) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [search, setSearch] = useState('');
-    
-    // Manage state
-    // Removed rename state variables
     
     const [deletingId, setDeletingId] = useState<number | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
