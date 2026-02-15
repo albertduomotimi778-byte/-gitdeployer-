@@ -1201,6 +1201,24 @@ PUBLIC_URL=/${repoName}/
         )}
       </main>
 
+      {/* Ad Banner Integration */}
+      <div className="w-full px-4 mb-4 mt-4">
+         <div className="max-w-4xl mx-auto">
+            <div className="bg-slate-100 rounded-xl overflow-hidden border border-slate-200 h-[100px] w-full relative">
+                <iframe 
+                   src="https://www.effectivegatecpm.com/genejfm2xp?key=8438651eb178c2abbd3ef7cbd93b243d" 
+                   className="absolute inset-0 w-full h-full border-0"
+                   title="Sponsored Content"
+                   scrolling="no"
+                   sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-top-navigation-by-user-activation"
+                   referrerPolicy="no-referrer"
+                   loading="eager"
+                />
+            </div>
+            <p className="text-center text-[10px] text-slate-300 mt-1 uppercase tracking-wider">Sponsored</p>
+         </div>
+      </div>
+
       <footer className="py-6 text-center text-slate-400 text-sm">
         <p>Build beautiful things.</p>
       </footer>
