@@ -273,6 +273,18 @@ const SelectionStep = ({ user, onDeploy, initialRepoName }: SelectionStepProps) 
       }
   }, [initialRepoName]);
 
+  // Persist newRepoName to prevent work loss on reload
+  useEffect(() => {
+      const savedName = sessionStorage.getItem('gh_deployer_new_repo_name');
+      if (savedName && !initialRepoName) {
+          setNewRepoName(savedName);
+      }
+  }, [initialRepoName]);
+
+  useEffect(() => {
+      sessionStorage.setItem('gh_deployer_new_repo_name', newRepoName);
+  }, [newRepoName]);
+
   useEffect(() => {
     if (repoType === 'existing') {
       setLoadingRepos(true);
@@ -323,6 +335,9 @@ const SelectionStep = ({ user, onDeploy, initialRepoName }: SelectionStepProps) 
       try {
         const result = await processZipFile(zipFile);
         onDeploy(repoName, repoType === 'new', result.files, result.isNodeProject, apiKey || null);
+        // Clear saved work on success
+        sessionStorage.removeItem('gh_deployer_new_repo_name');
+        setNewRepoName('');
       } catch (e: any) {
         setZipError(e.message);
       } finally {
@@ -330,6 +345,8 @@ const SelectionStep = ({ user, onDeploy, initialRepoName }: SelectionStepProps) 
       }
     } else {
       onDeploy(repoName, repoType === 'new', null, false, null, selectedTemplate);
+      sessionStorage.removeItem('gh_deployer_new_repo_name');
+      setNewRepoName('');
     }
   };
 
@@ -829,6 +846,48 @@ const ManageStep = ({ user, onUpdate }: ManageStepProps) => {
     );
 };
 
+// --- Optimized Ad Banner Component ---
+const AdBanner = () => {
+  const [key, setKey] = useState(0);
+
+  useEffect(() => {
+    // Refresh the ad every 25 seconds to cycle through offers and increase impression count
+    const timer = setInterval(() => {
+      setKey(prev => prev + 1);
+    }, 25000); 
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="w-full px-4 mb-4 mt-4">
+       <div className="max-w-4xl mx-auto">
+          <div className="bg-slate-100 rounded-xl overflow-hidden border border-slate-200 h-[100px] w-full relative group">
+              {/* Fallback/Loading state */}
+              <div className="absolute inset-0 flex items-center justify-center text-slate-300 text-xs">
+                  <span className="animate-pulse">Loading offer...</span>
+              </div>
+              
+              <iframe 
+                 key={key}
+                 // Add timestamp param to prevent caching and force a fresh ad request from the network
+                 src={`https://www.effectivegatecpm.com/genejfm2xp?key=8438651eb178c2abbd3ef7cbd93b243d&_t=${Date.now()}`} 
+                 className="absolute inset-0 w-full h-full border-0 z-10 bg-white"
+                 title="Sponsored Content"
+                 scrolling="no"
+                 sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-top-navigation-by-user-activation"
+                 referrerPolicy="no-referrer"
+                 loading="eager"
+              />
+          </div>
+          <div className="flex justify-between items-center mt-1 px-1">
+             <p className="text-[10px] text-slate-300 uppercase tracking-wider">Sponsored</p>
+             <p className="text-[10px] text-slate-300 opacity-60">Auto-refreshes</p>
+          </div>
+       </div>
+    </div>
+  );
+};
+
 // --- Main App Component ---
 
 const App = () => {
@@ -845,6 +904,28 @@ const App = () => {
   const addLog = (message: string, type: 'info' | 'success' | 'error' = 'info') => {
     setLogs(prev => [...prev, { message, timestamp: Date.now(), type }]);
   };
+
+  // ADDED: Cache clearing logic to ensure fresh app version when online
+  useEffect(() => {
+      const updateApp = async () => {
+          // If we are online and support cache API, clear caches to ensure fresh assets on next fetch
+          if (navigator.onLine && 'caches' in window) {
+              try {
+                  const keys = await caches.keys();
+                  if (keys.length > 0) {
+                      await Promise.all(keys.map(key => caches.delete(key)));
+                      console.log('App cache cleared for update.');
+                  }
+              } catch (e) {
+                  console.error('Failed to clear cache', e);
+              }
+          }
+      };
+      
+      updateApp();
+      window.addEventListener('online', updateApp);
+      return () => window.removeEventListener('online', updateApp);
+  }, []);
 
   useEffect(() => {
     const init = async () => {
@@ -1202,22 +1283,7 @@ PUBLIC_URL=/${repoName}/
       </main>
 
       {/* Ad Banner Integration */}
-      <div className="w-full px-4 mb-4 mt-4">
-         <div className="max-w-4xl mx-auto">
-            <div className="bg-slate-100 rounded-xl overflow-hidden border border-slate-200 h-[100px] w-full relative">
-                <iframe 
-                   src="https://www.effectivegatecpm.com/genejfm2xp?key=8438651eb178c2abbd3ef7cbd93b243d" 
-                   className="absolute inset-0 w-full h-full border-0"
-                   title="Sponsored Content"
-                   scrolling="no"
-                   sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-top-navigation-by-user-activation"
-                   referrerPolicy="no-referrer"
-                   loading="eager"
-                />
-            </div>
-            <p className="text-center text-[10px] text-slate-300 mt-1 uppercase tracking-wider">Sponsored</p>
-         </div>
-      </div>
+      <AdBanner />
 
       <footer className="py-6 text-center text-slate-400 text-sm">
         <p>Build beautiful things.</p>
